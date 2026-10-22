@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Kiểm tra SEO on-page')}"></head>
+<body>
+<header th:replace="~{layout :: header('analyze')}"></header>
+
+<main class="page">
+    <section class="intro">
+        <h1>Kiểm tra SEO on-page của một trang web</h1>
+        <p class="lede">Nhập địa chỉ trang cần kiểm tra. Hệ thống chấm điểm theo 7 tiêu chí dựa trên
+            Google SEO Starter Guide, rồi đề xuất cách sửa bằng AI.</p>
+
+        <form class="url-form" th:action="@{/analyze}" method="post" data-loading-form>
+            <label for="url" class="visually-hidden">Địa chỉ trang web</label>
+            <input id="url" name="url" type="text" inputmode="url" autocomplete="url"
+                   placeholder="https://vnexpress.net" th:value="${url}" required autofocus
+                   th:attr="aria-invalid=${error != null} ? 'true' : null"
+                   aria-describedby="url-hint">
+            <button type="submit" class="btn btn-primary" data-loading-text="Đang phân tích…">Phân tích</button>
+        </form>
+        <p class="form-error" role="alert" th:if="${error}" th:text="${error}">Lỗi</p>
+        <p id="url-hint" class="hint">Có thể bỏ qua https://. Mỗi lần phân tích mất vài giây, tuỳ tốc độ của trang.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="recent-heading">
+        <div class="panel-head">
+            <h2 id="recent-heading">Phân tích gần đây</h2>
+            <a th:href="@{/history}" th:unless="${#lists.isEmpty(recent)}">Xem toàn bộ lịch sử</a>
+        </div>
+        <p class="empty" th:if="${#lists.isEmpty(recent)}">Chưa có lần phân tích nào. Nhập một địa chỉ ở trên để bắt đầu.</p>
+        <div th:unless="${#lists.isEmpty(recent)}">
+            <table th:replace="~{layout :: historyTable(${recent})}"></table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>

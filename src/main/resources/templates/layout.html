@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Các phần dùng chung cho mọi trang. Mỗi trang gọi bằng th:replace="~{layout :: ten-phan}".
+-->
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' | SEO Analyzer'">SEO Analyzer</title>
+    <meta name="description" content="Công cụ phân tích và chấm điểm SEO on-page, gợi ý cải thiện bằng trí tuệ nhân tạo.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+
+<header th:fragment="header(active)" class="site-header">
+    <div class="site-header-inner">
+        <a class="brand" th:href="@{/}">SEO Analyzer</a>
+        <nav aria-label="Điều hướng chính">
+            <a th:href="@{/}" th:classappend="${active == 'analyze'} ? 'is-active'"
+               th:attr="aria-current=${active == 'analyze'} ? 'page' : null">Phân tích</a>
+            <a th:href="@{/history}" th:classappend="${active == 'history'} ? 'is-active'"
+               th:attr="aria-current=${active == 'history'} ? 'page' : null">Lịch sử</a>
+        </nav>
+    </div>
+</header>
+
+<!-- Bảng danh sách các lần phân tích -->
+<table th:fragment="historyTable(rows)" class="history-table">
+    <thead>
+    <tr>
+        <th scope="col">Trang</th>
+        <th scope="col">Thời điểm</th>
+        <th scope="col" class="num">Điểm</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="row : ${rows}">
+        <td data-label="Trang">
+            <a class="row-title" th:href="@{/analysis/{id}(id=${row.id()})}" th:text="${row.title()}">Tiêu đề trang</a>
+            <span class="row-url" th:text="${row.url()}">https://example.com</span>
+        </td>
+        <td data-label="Thời điểm" class="row-time" th:text="${row.analyzedAtText()}">15:42, 22/10/2026</td>
+        <td data-label="Điểm" class="num">
+            <span class="score-chip" th:classappend="${'band-' + row.band()}">
+                <strong th:text="${row.totalScore()}">78</strong>
+                <span th:text="${row.bandLabel()}">Cần cải thiện</span>
+            </span>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- Biểu đồ đường: điểm SEO của một trang qua các lần phân tích (vẽ sẵn toạ độ trên server) -->
+<figure th:fragment="scoreChart(chart)" class="chart">
+    <svg th:attr="viewBox=|0 0 ${chart.width()} ${chart.height()}|" role="img"
+         aria-label="Biểu đồ điểm SEO qua các lần phân tích, thang 0 đến 100">
+        <g class="chart-grid">
+            <g th:each="g : ${chart.gridLines()}">
+                <line th:attr="x1=${chart.plotLeft()},x2=${chart.plotRight()},y1=${g.y()},y2=${g.y()}"/>
+                <text class="chart-axis" text-anchor="end"
+                      th:attr="x=${chart.plotLeft() - 8},y=${g.y() + 4}" th:text="${g.value()}">100</text>
+            </g>
+        </g>
+        <polyline class="chart-line" th:attr="points=${chart.polyline()}"/>
+        <a th:each="p, s : ${chart.points()}" th:href="@{/analysis/{id}(id=${p.id()})}">
+            <circle class="chart-hit" r="12" th:attr="cx=${p.x()},cy=${p.y()}"/>
+            <circle class="chart-dot" r="5" th:attr="cx=${p.x()},cy=${p.y()}">
+                <title th:text="|${p.score()} điểm, lúc ${p.label()}|">78 điểm</title>
+            </circle>
+            <text th:if="${s.last}" class="chart-value" text-anchor="middle"
+                  th:attr="x=${p.x()},y=${p.y() - 12}" th:text="${p.score()}">78</text>
+        </a>
+        <text class="chart-axis" text-anchor="start"
+              th:attr="x=${chart.plotLeft()},y=${chart.labelY()}" th:text="${chart.firstLabel()}">22/10 15:42</text>
+        <text class="chart-axis" text-anchor="end"
+              th:attr="x=${chart.plotRight()},y=${chart.labelY()}" th:text="${chart.lastLabel()}">22/10 16:15</text>
+    </svg>
+    <figcaption>Điểm SEO on-page qua các lần phân tích, cũ nhất bên trái. Di chuột vào một điểm để xem chi tiết, bấm để mở lần phân tích đó.</figcaption>
+</figure>
+
+<footer th:fragment="footer" class="site-footer">
+    <p>Đồ án tốt nghiệp. Bộ tiêu chí dựa trên Google SEO Starter Guide và Google Image SEO Guidelines.</p>
+</footer>
+
+<script th:fragment="scripts" th:src="@{/js/app.js}" defer></script>
+
+</body>
+</html>

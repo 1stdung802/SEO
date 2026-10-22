@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Không tìm thấy trang')}"></head>
+<body>
+<header th:replace="~{layout :: header('none')}"></header>
+
+<main class="page">
+    <section class="intro">
+        <h1 th:text="${status == 404} ? 'Không tìm thấy trang này' : 'Đã xảy ra lỗi'">Không tìm thấy trang này</h1>
+        <p class="lede" th:if="${message != null and !#strings.isEmpty(message)}" th:text="${message}">Chi tiết lỗi</p>
+        <p class="lede" th:if="${message == null or #strings.isEmpty(message)}">
+            Địa chỉ có thể đã sai, hoặc lần phân tích này không còn trong hệ thống.</p>
+        <p><a class="btn btn-primary" th:href="@{/}">Về trang phân tích</a></p>
+    </section>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

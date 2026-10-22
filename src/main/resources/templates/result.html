@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Kết quả phân tích')}"></head>
+<body>
+<header th:replace="~{layout :: header('analyze')}"></header>
+
+<main class="page">
+    <div class="result-head">
+        <a class="back-link" th:href="@{/}">Phân tích trang khác</a>
+        <h1 class="result-url" th:text="${r.url()}">https://vnexpress.net</h1>
+        <p class="result-time">Phân tích lúc <span th:text="${r.analyzedAtText()}">15:42, 22/10/2026</span></p>
+    </div>
+
+    <!-- Điểm tổng + mô phỏng kết quả tìm kiếm -->
+    <div class="overview">
+        <section class="score-card" th:classappend="${'band-' + r.band()}" aria-labelledby="score-heading">
+            <h2 id="score-heading" class="visually-hidden">Điểm SEO on-page</h2>
+            <svg class="gauge" viewBox="0 0 120 120" role="img"
+                 th:aria-label="|Điểm SEO ${r.totalScore()} trên 100, mức ${r.bandLabel()}|">
+                <circle class="gauge-track" cx="60" cy="60" r="52"/>
+                <circle class="gauge-value" cx="60" cy="60" r="52" transform="rotate(-90 60 60)"
+                        th:attr="stroke-dasharray=${r.gaugeDash()}"/>
+                <text class="gauge-number" x="60" y="62" text-anchor="middle" th:text="${r.totalScore()}">78</text>
+                <text class="gauge-unit" x="60" y="82" text-anchor="middle">trên 100</text>
+            </svg>
+            <p class="score-band" th:text="${r.bandLabel()}">Cần cải thiện</p>
+            <ul class="tally">
+                <li class="status-pass"><span aria-hidden="true">✓</span> <span th:text="${r.passedCount()}">5</span> đạt</li>
+                <li class="status-partial" th:if="${r.partialCount() gt 0}"><span aria-hidden="true">!</span> <span th:text="${r.partialCount()}">1</span> đạt một phần</li>
+                <li class="status-fail" th:if="${r.failedCount() gt 0}"><span aria-hidden="true">✕</span> <span th:text="${r.failedCount()}">1</span> chưa đạt</li>
+            </ul>
+        </section>
+
+        <section class="serp-card" aria-labelledby="serp-heading">
+            <h2 id="serp-heading">Trang hiển thị thế nào trên Google</h2>
+            <div class="serp" aria-describedby="serp-note">
+                <p class="serp-url" th:text="${r.serpUrl()}">vnexpress.net</p>
+                <p class="serp-title" th:text="${r.serpTitle()}">Báo VnExpress - Báo tiếng Việt nhiều người xem nhất</p>
+                <p class="serp-meta" th:if="${r.metaLength() gt 0}" th:text="${r.serpMeta()}">Mô tả</p>
+                <p class="serp-meta serp-missing" th:if="${r.metaKnown() and r.metaLength() == 0}">
+                    Trang không có meta description, nên Google sẽ tự lấy một đoạn nội dung bất kỳ để hiển thị ở đây.</p>
+                <p class="serp-meta serp-missing" th:unless="${r.metaKnown()}">
+                    Lần phân tích này được tạo trước khi hệ thống lưu meta description. Phân tích lại để xem mô phỏng đầy đủ.</p>
+            </div>
+            <dl class="serp-facts">
+                <div th:classappend="${r.titleLength() lt 30 or r.titleLength() gt 60} ? 'is-off'">
+                    <dt>Title</dt>
+                    <dd><span th:text="${r.titleLength()}">51</span> ký tự, nên 30–60
+                        <span th:if="${r.titleTruncated()}">(bị cắt)</span></dd>
+                </div>
+                <div th:if="${r.metaKnown()}" th:classappend="${r.metaLength() lt 70 or r.metaLength() gt 160} ? 'is-off'">
+                    <dt>Meta description</dt>
+                    <dd><span th:text="${r.metaLength()}">192</span> ký tự, nên 70–160
+                        <span th:if="${r.metaTruncated()}">(bị cắt)</span></dd>
+                </div>
+            </dl>
+            <p id="serp-note" class="note">Mô phỏng gần đúng. Google cắt theo độ rộng hiển thị (khoảng 600 pixel) chứ không theo số ký tự chính xác.</p>
+        </section>
+    </div>
+
+    <!-- Bảng tiêu chí -->
+    <section class="panel" aria-labelledby="criteria-heading">
+        <div class="panel-head">
+            <h2 id="criteria-heading">Kết quả theo từng tiêu chí</h2>
+        </div>
+        <table class="criteria-table">
+            <thead>
+            <tr>
+                <th scope="col">Tiêu chí</th>
+                <th scope="col">Kết quả</th>
+                <th scope="col" class="num">Điểm</th>
+                <th scope="col">Nhận xét</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${r.criteria()}" th:classappend="${'row-' + c.status()}">
+                <th scope="row" data-label="Tiêu chí">
+                    <span class="criterion-name" th:text="${c.name()}">Thẻ tiêu đề (title)</span>
+                    <span class="criterion-source" th:text="'Căn cứ: ' + ${c.source()}">Căn cứ</span>
+                </th>
+                <td data-label="Kết quả">
+                    <span class="status" th:classappend="${'status-' + c.status()}">
+                        <span aria-hidden="true" th:text="${c.icon()}">✓</span>
+                        <span th:text="${c.statusLabel()}">Đạt</span>
+                    </span>
+                </td>
+                <td data-label="Điểm" class="num" th:text="${c.earnedText()}">20 / 20</td>
+                <td data-label="Nhận xét" th:text="${c.message()}">Nhận xét</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Gợi ý AI -->
+    <section id="ai" class="panel" aria-labelledby="ai-heading">
+        <div class="panel-head">
+            <h2 id="ai-heading">Gợi ý cải thiện</h2>
+        </div>
+
+        <p class="form-error" role="alert" th:if="${aiError}" th:text="${aiError}">Lỗi AI</p>
+
+        <div th:if="${r.hasSuggestion()}">
+            <div class="suggestion" th:text="${r.suggestion()}">Nội dung gợi ý</div>
+            <p class="note">Tạo bằng Gemini lúc <span th:text="${r.suggestionAtText()}">16:15</span>.
+                Gợi ý chỉ mang tính tham khảo: sau khi sửa trang, hãy phân tích lại để đo kết quả thực tế.</p>
+        </div>
+
+        <div th:unless="${r.hasSuggestion()}">
+            <div th:if="${r.hasFailures()}">
+                <p>AI sẽ đọc các tiêu chí chưa đạt ở trên và đề xuất cách sửa cụ thể, kể cả viết lại title hoặc meta description khi cần.</p>
+                <form th:action="@{/analysis/{id}/suggestions(id=${r.id()})}" method="post" data-loading-form>
+                    <button type="submit" class="btn btn-primary" data-loading-text="Đang tạo gợi ý…">Tạo gợi ý bằng AI</button>
+                </form>
+            </div>
+            <p th:unless="${r.hasFailures()}">Trang đạt tất cả tiêu chí đang kiểm tra, chưa cần chỉnh sửa thêm.</p>
+        </div>
+
+        <details class="length-checker" th:open="${r.hasSuggestion()}">
+            <summary>Kiểm tra độ dài bản viết lại</summary>
+            <p class="note">AI có thể đếm sai số ký tự. Dán bản viết lại vào đây để hệ thống đếm lại chính xác.</p>
+            <div class="checker-field" data-length-check data-min="30" data-max="60">
+                <label for="check-title">Title</label>
+                <textarea id="check-title" rows="2" aria-describedby="check-title-out"></textarea>
+                <p id="check-title-out" class="checker-out" aria-live="polite">0 ký tự, nên 30–60</p>
+            </div>
+            <div class="checker-field" data-length-check data-min="70" data-max="160">
+                <label for="check-meta">Meta description</label>
+                <textarea id="check-meta" rows="4" aria-describedby="check-meta-out"></textarea>
+                <p id="check-meta-out" class="checker-out" aria-live="polite">0 ký tự, nên 70–160</p>
+            </div>
+        </details>
+    </section>
+
+    <!-- Điểm theo thời gian -->
+    <section class="panel" aria-labelledby="trend-heading">
+        <div class="panel-head">
+            <h2 id="trend-heading">Điểm của trang này theo thời gian</h2>
+            <a th:href="@{/history(url=${r.url()})}">Xem lịch sử trang này</a>
+        </div>
+        <div th:if="${chart}">
+            <figure th:replace="~{layout :: scoreChart(${chart})}"></figure>
+        </div>
+        <p class="empty" th:unless="${chart}">Đây là lần phân tích đầu tiên của trang này. Phân tích lại sau khi chỉnh sửa trang để thấy điểm thay đổi.</p>
+        <form class="inline-form" th:action="@{/analyze}" method="post" data-loading-form>
+            <input type="hidden" name="url" th:value="${r.url()}">
+            <button type="submit" class="btn btn-secondary" data-loading-text="Đang phân tích lại…">Phân tích lại trang này</button>
+        </form>
+    </section>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>

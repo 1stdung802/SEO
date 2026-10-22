@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('Lịch sử phân tích')}"></head>
+<body>
+<header th:replace="~{layout :: header('history')}"></header>
+
+<main class="page">
+    <section class="intro intro-compact">
+        <h1>Lịch sử phân tích</h1>
+        <p class="lede">Xem lại các lần phân tích đã lưu. Lọc theo một trang để thấy điểm thay đổi qua thời gian.</p>
+        <form class="url-form" th:action="@{/history}" method="get">
+            <label for="filter-url" class="visually-hidden">Lọc theo địa chỉ trang</label>
+            <input id="filter-url" name="url" type="text" inputmode="url"
+                   placeholder="Lọc theo địa chỉ, ví dụ vnexpress.net" th:value="${url}">
+            <button type="submit" class="btn btn-secondary">Lọc</button>
+            <a class="btn btn-ghost" th:href="@{/history}" th:if="${url != null and !#strings.isEmpty(url)}">Bỏ lọc</a>
+        </form>
+        <p class="form-error" role="alert" th:if="${error}" th:text="${error}">Lỗi</p>
+    </section>
+
+    <section class="panel" th:if="${url != null and !#strings.isEmpty(url) and error == null}" aria-labelledby="trend-heading">
+        <div class="panel-head">
+            <h2 id="trend-heading">Điểm theo thời gian</h2>
+        </div>
+        <div th:if="${chart}">
+            <figure th:replace="~{layout :: scoreChart(${chart})}"></figure>
+        </div>
+        <p class="empty" th:unless="${chart}">Cần ít nhất 2 lần phân tích của trang này để vẽ biểu đồ.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="list-heading">
+        <div class="panel-head">
+            <h2 id="list-heading" th:text="${url != null and !#strings.isEmpty(url) and error == null}
+                    ? 'Các lần phân tích của trang này' : '20 lần phân tích gần nhất'">20 lần phân tích gần nhất</h2>
+        </div>
+        <p class="empty" th:if="${#lists.isEmpty(rows)}">
+            Chưa có lần phân tích nào phù hợp. <a th:href="@{/}">Phân tích một trang</a>
+        </p>
+        <div th:unless="${#lists.isEmpty(rows)}">
+            <table th:replace="~{layout :: historyTable(${rows})}"></table>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{layout :: footer}"></footer>
+<script th:replace="~{layout :: scripts}"></script>
+</body>
+</html>
