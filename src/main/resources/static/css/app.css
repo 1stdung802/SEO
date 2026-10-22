@@ -590,10 +590,12 @@ th:last-child, td:last-child {
 .status-pass { color: var(--good); }
 .status-partial { color: var(--fair); }
 .status-fail { color: var(--poor); }
+.status-na { color: var(--muted); }
 
 .status.status-pass { background: var(--good-bg); }
 .status.status-partial { background: var(--fair-bg); }
 .status.status-fail { background: var(--poor-bg); }
+.status.status-na { background: var(--track); }
 
 /* --------------------------------------------------------------- Gợi ý AI */
 

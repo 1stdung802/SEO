@@ -7,8 +7,8 @@
 <main class="page">
     <section class="intro">
         <h1>Kiểm tra SEO on-page của một trang web</h1>
-        <p class="lede">Nhập địa chỉ trang cần kiểm tra. Hệ thống chấm điểm theo 7 tiêu chí dựa trên
-            Google SEO Starter Guide, rồi đề xuất cách sửa bằng AI.</p>
+        <p class="lede">Nhập địa chỉ trang cần kiểm tra. Hệ thống chấm điểm theo 8 tiêu chí dựa trên
+            Google SEO Starter Guide và Core Web Vitals, rồi đề xuất cách sửa bằng AI.</p>
 
         <form class="url-form" th:action="@{/analyze}" method="post" data-loading-form>
             <label for="url" class="visually-hidden">Địa chỉ trang web</label>
@@ -16,10 +16,10 @@
                    placeholder="https://vnexpress.net" th:value="${url}" required autofocus
                    th:attr="aria-invalid=${error != null} ? 'true' : null"
                    aria-describedby="url-hint">
-            <button type="submit" class="btn btn-primary" data-loading-text="Đang phân tích…">Phân tích</button>
+            <button type="submit" class="btn btn-primary" data-loading-text="Đang phân tích, có thể mất tới 1 phút…">Phân tích</button>
         </form>
         <p class="form-error" role="alert" th:if="${error}" th:text="${error}">Lỗi</p>
-        <p id="url-hint" class="hint">Có thể bỏ qua https://. Mỗi lần phân tích mất vài giây, tuỳ tốc độ của trang.</p>
+        <p id="url-hint" class="hint">Có thể bỏ qua https://. Mỗi lần phân tích mất khoảng 20–60 giây vì hệ thống đo tốc độ tải thật qua Google PageSpeed Insights.</p>
     </section>
 
     <section class="panel" aria-labelledby="recent-heading">

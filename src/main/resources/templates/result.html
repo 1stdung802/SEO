@@ -143,7 +143,7 @@
         <p class="empty" th:unless="${chart}">Đây là lần phân tích đầu tiên của trang này. Phân tích lại sau khi chỉnh sửa trang để thấy điểm thay đổi.</p>
         <form class="inline-form" th:action="@{/analyze}" method="post" data-loading-form>
             <input type="hidden" name="url" th:value="${r.url()}">
-            <button type="submit" class="btn btn-secondary" data-loading-text="Đang phân tích lại…">Phân tích lại trang này</button>
+            <button type="submit" class="btn btn-secondary" data-loading-text="Đang phân tích lại, có thể mất tới 1 phút…">Phân tích lại trang này</button>
         </form>
     </section>
 </main>

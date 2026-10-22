@@ -2,6 +2,7 @@ package com.dung.seoanalyzer.seoanalyzer.service;
 
 import com.dung.seoanalyzer.seoanalyzer.dto.AnalysisDetail;
 import com.dung.seoanalyzer.seoanalyzer.dto.AnalysisSummary;
+import com.dung.seoanalyzer.seoanalyzer.dto.CoreWebVitals;
 import com.dung.seoanalyzer.seoanalyzer.dto.CriterionResult;
 import com.dung.seoanalyzer.seoanalyzer.dto.SeoPageData;
 import com.dung.seoanalyzer.seoanalyzer.dto.SeoReport;
@@ -15,24 +16,33 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Điều phối toàn bộ quy trình: chuẩn hoá URL → thu thập → chấm điểm → lưu lịch sử.
  * <p>
- * Lưu ý thiết kế: bước crawl (có thể mất tới 10 giây) KHÔNG nằm trong transaction,
- * để không giữ kết nối database trong lúc chờ mạng. Chỉ thao tác save mới mở transaction.
+ * Lưu ý thiết kế:
+ * <ul>
+ *   <li>Bước crawl và đo tốc độ KHÔNG nằm trong transaction, để không giữ kết nối
+ *       database trong lúc chờ mạng. Chỉ thao tác save mới mở transaction.</li>
+ *   <li>Đo tốc độ bằng PageSpeed Insights (10–40 giây) chạy SONG SONG với crawl,
+ *       nên tổng thời gian bằng bước chậm nhất chứ không cộng dồn.</li>
+ * </ul>
  */
 @Service
 public class AnalysisService {
 
     private final CrawlerService crawlerService;
+    private final PageSpeedClient pageSpeedClient;
     private final SeoScoringService scoringService;
     private final AnalysisRepository analysisRepository;
 
     public AnalysisService(CrawlerService crawlerService,
+                           PageSpeedClient pageSpeedClient,
                            SeoScoringService scoringService,
                            AnalysisRepository analysisRepository) {
         this.crawlerService = crawlerService;
+        this.pageSpeedClient = pageSpeedClient;
         this.scoringService = scoringService;
         this.analysisRepository = analysisRepository;
     }
@@ -40,7 +50,15 @@ public class AnalysisService {
     /** Phân tích một URL, lưu kết quả vào database và trả về chi tiết. */
     public AnalysisDetail analyzeAndSave(String rawUrl) throws IOException {
         String url = normalizeUrl(rawUrl);
+
+        // Bắt đầu đo tốc độ ở luồng riêng, trong lúc luồng chính crawl trang
+        CompletableFuture<CoreWebVitals> vitalsFuture =
+                CompletableFuture.supplyAsync(() -> pageSpeedClient.measure(url));
+
         SeoPageData data = crawlerService.crawl(url);
+        CoreWebVitals vitals = vitalsFuture.join(); // measure() không ném lỗi, luôn có kết quả
+        data = data.withCoreWebVitals(vitals);
+
         SeoReport report = scoringService.score(data);
 
         Analysis analysis = new Analysis(url,

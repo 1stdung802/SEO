@@ -51,7 +51,7 @@ public class ReportViewService {
         List<CriterionRow> rows = a.getCriteria().stream().map(ReportViewService::toRow).toList();
         int passed = (int) rows.stream().filter(r -> r.status().equals("pass")).count();
         int partial = (int) rows.stream().filter(r -> r.status().equals("partial")).count();
-        int failed = rows.size() - passed - partial;
+        int failed = (int) rows.stream().filter(r -> r.status().equals("fail")).count();
 
         String title = nfc(a.getTitle());
         String meta = nfc(a.getMetaDescription());
@@ -137,6 +137,11 @@ public class ReportViewService {
 
     static CriterionRow toRow(AnalysisCriterion c) {
         String status, label, icon;
+        if (c.getWeight() == 0) {
+            // Tiêu chí không đo được, không tính vào điểm
+            return new CriterionRow(c.getName(), 0, "Không tính", "na", "Không tính điểm", "–",
+                    c.getMessage(), c.getSource());
+        }
         if (c.getScore() >= 1.0) {
             status = "pass"; label = "Đạt"; icon = "✓";
         } else if (c.getScore() > 0) {

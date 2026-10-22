@@ -48,7 +48,8 @@ public class SuggestionService {
         }
 
         List<AnalysisCriterion> failed = analysis.getCriteria().stream()
-                .filter(c -> c.getScore() < 1.0)
+                // Bỏ qua tiêu chí không tính điểm (trọng số 0, VD: không đo được tốc độ)
+                .filter(c -> c.getWeight() > 0 && c.getScore() < 1.0)
                 .sorted(Comparator.comparingInt(AnalysisCriterion::getWeight).reversed())
                 .toList();
 
